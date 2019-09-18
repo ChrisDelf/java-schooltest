@@ -1,6 +1,8 @@
 package com.lambdaschool.school.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lambdaschool.school.model.Course;
+import com.lambdaschool.school.model.Instructor;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +17,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,7 +36,23 @@ public class CourseControllerIntegrationTest {
         RestAssuredMockMvc.webAppContextSetup((webApplicationContext));
     }
 
-    //GET /courses/courses/
 
+    @Test
+    public void addNewCourse() throws Exception
+    {
+        ArrayList<Course> thisCourse = new ArrayList<>();
+        String course3Name = "Basketweaving";
+        Instructor instType3 = new Instructor("Charlie");
+        instType3.setInstructid(5);
+        Course c3 = new Course(course3Name,instType3 );
+
+        ObjectMapper mapper = new ObjectMapper();
+        String stringR3 = mapper.writeValueAsString(c3);
+
+        given().contentType("application/json").body(stringR3)
+                .when()
+                .post("/courses/course/add")
+                .then().statusCode(201);
+    }
 
 }

@@ -20,12 +20,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 // we have to make our own seeddata
 @RunWith(SpringRunner.class)
 @WebMvcTest( value = CourseService.class, secure = false)  //we are turning off user authen
@@ -40,7 +44,7 @@ public class CourseControllerUnitTest {
     private ArrayList<Course> courseList;
 
     @Before // before we do anything we need to intialize
-    public void setup()
+    public void setup() throws Exception
     {
         instructorList = new ArrayList<>();
         courseList = new ArrayList<>();
@@ -84,5 +88,28 @@ public class CourseControllerUnitTest {
         String er = mapper.writeValueAsString(courseList);
 
 
+    }
+
+    @Test
+    public void addNewCourse() throws Exception
+    {
+        String apiUrl = "/courses/course/add";
+
+        ArrayList<Course> thisCourse = new ArrayList<>();
+        String course3Name = "Basket Weaving";
+        Instructor instType3 = new Instructor("Charlie");
+        instType3.setInstructid(3);
+        Course c3 = new Course(course3Name,instType3
+                );
+        c3.setCourseid(100);
+        ObjectMapper mapper = new ObjectMapper();
+        String courseString = mapper.writeValueAsString(c3);
+
+        Mockito.when(courseService.save(any(Course.class))).thenReturn(c3);
+
+        RequestBuilder rb = MockMvcRequestBuilders.post(apiUrl)
+                .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .content(courseString);
+        mockMvc.perform(rb).andExpect(status().isCreated()).andDo(MockMvcResultHandlers.print());
     }
 }
