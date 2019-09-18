@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
@@ -28,11 +30,13 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // we have to make our own seeddata
+
 @RunWith(SpringRunner.class)
-@WebMvcTest( value = CourseService.class, secure = false)  //we are turning off user authen
+@WebMvcTest(value =CourseController.class , secure = false)  //we are turning off user authen
 public class CourseControllerUnitTest {
     @Autowired
     private MockMvc mockMvc;
@@ -46,6 +50,8 @@ public class CourseControllerUnitTest {
     @Before // before we do anything we need to intialize
     public void setup() throws Exception
     {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(new CourseControllerUnitTest()).build();
+
         instructorList = new ArrayList<>();
         courseList = new ArrayList<>();
 
@@ -74,14 +80,14 @@ public class CourseControllerUnitTest {
     @Test
     public void listAllCourse() throws Exception
     {
-        String apiUrl = "/courses/courses";
+        String apiUrl = "/courses/courses/";
 
         Mockito.when(courseService.findAll()).thenReturn(courseList);
 
         RequestBuilder rb = MockMvcRequestBuilders.get(apiUrl).accept(MediaType.APPLICATION_JSON);
 
         // the following actually performs a real controller call
-        MvcResult r = mockMvc.perform(rb).andReturn(); // this could throw an exception
+        MvcResult r = mockMvc.perform(rb).andExpect(status().is2xxSuccessful()).andReturn(); // this could throw an exception
         String tr = r.getResponse().getContentAsString();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -95,12 +101,12 @@ public class CourseControllerUnitTest {
     {
         String apiUrl = "/courses/course/add";
 
-        ArrayList<Course> thisCourse = new ArrayList<>();
+
         String course3Name = "Basket Weaving";
         Instructor instType3 = new Instructor("Charlie");
         instType3.setInstructid(3);
-        Course c3 = new Course(course3Name,instType3
-                );
+        Course c3 = new Course(course3Name,instType3);
+
         c3.setCourseid(100);
         ObjectMapper mapper = new ObjectMapper();
         String courseString = mapper.writeValueAsString(c3);
@@ -108,8 +114,31 @@ public class CourseControllerUnitTest {
         Mockito.when(courseService.save(any(Course.class))).thenReturn(c3);
 
         RequestBuilder rb = MockMvcRequestBuilders.post(apiUrl)
-                .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                .content(courseString);
-        mockMvc.perform(rb).andExpect(status().isCreated()).andDo(MockMvcResultHandlers.print());
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(courseString)
+                .characterEncoding("utf-8");
+        mockMvc.perform(rb).andExpect(status().isCreated()).andDo(print());
     }
+    @Test
+    public void createEmployeeAPI() throws Exception
+    {
+        String course3Name = "Basket Weaving";
+        Instructor instType3 = new Instructor("Charlie");
+        instType3.setInstructid(3);
+        Course c3 = new Course(course3Name,instType3);
+        c3.setCourseid(100);
+        ObjectMapper mapper = new ObjectMapper();
+        String courseString = mapper.writeValueAsString(c3);
+
+        mockMvc.perform( MockMvcRequestBuilders
+                .post("/courses/course/add")
+                .content(courseString)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.courseid").exists());
+    }
+
+
 }
