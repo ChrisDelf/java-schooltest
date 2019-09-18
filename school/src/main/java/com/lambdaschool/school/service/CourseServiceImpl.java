@@ -9,10 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Service(value = "courseService")
 public class CourseServiceImpl implements CourseService
 {
+
     @Autowired
     private CourseRepository courserepos;
 
@@ -22,6 +24,12 @@ public class CourseServiceImpl implements CourseService
         ArrayList<Course> list = new ArrayList<>();
         courserepos.findAll().iterator().forEachRemaining(list::add);
         return list;
+    }
+
+    @Override
+    public Course findCourseById(long id) throws EntityNotFoundException {
+        return courserepos.findById(id)
+         .orElseThrow(() -> new EntityNotFoundException(Long.toString(id)));
     }
 
     @Override
