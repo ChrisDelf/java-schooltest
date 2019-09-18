@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.EntityNotFoundException;
+
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.*;
 
@@ -29,5 +31,23 @@ private CourseService courseService;
     @Test
     public void findCourseById() {
         assertEquals("Mobile Android", courseService.findCourseById(6).getCoursename());
+    }
+
+    @Test
+    public void delete() {
+        courseService.delete(3);
+        assertEquals(5,courseService.findAll().size());
+    }
+    @Test
+    public void deleteFound()
+    {
+        courseService.delete(2);
+        assertEquals(5, courseService.findAll().size());
+    }
+    @Test (expected = EntityNotFoundException.class)
+    public void deleteNotFound()
+    {
+        courseService.delete(100);
+        assertEquals(5, courseService.findAll().size());
     }
 }
