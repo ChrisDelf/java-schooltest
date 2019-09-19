@@ -3,6 +3,7 @@ package com.lambdaschool.school.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lambdaschool.school.model.Course;
 import com.lambdaschool.school.model.Instructor;
+import com.lambdaschool.school.service.InstructorService;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +31,11 @@ public class CourseControllerIntegrationTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private InstructorService instructorService;
+
+
+
     @Before // before we do anything we need to intialize
     public void setup()
     {
@@ -38,21 +44,14 @@ public class CourseControllerIntegrationTest {
 
 
     @Test
-    public void addNewCourse() throws Exception
+    public void givenPostANewCourse() throws Exception
     {
-        ArrayList<Course> thisCourse = new ArrayList<>();
-        String course3Name = "Basketweaving";
-        Instructor instType3 = new Instructor("Charlie");
-        instType3.setInstructid(5);
-        Course c3 = new Course(course3Name,instType3 );
-
+        Instructor inst = instructorService.findInstructorById(3);
+        Course c1 = new Course("New Course", inst);
         ObjectMapper mapper = new ObjectMapper();
-        String stringR3 = mapper.writeValueAsString(c3);
+        String string1 = mapper.writeValueAsString(c1);
+        given().contentType("application/json").body(string1).when().post("/courses/course/add").then().statusCode(201);
 
-        given().contentType("application/json").body(stringR3)
-                .when()
-                .post("/courses/course/add")
-                .then().statusCode(201);
+        System.out.println(string1);
     }
-
 }

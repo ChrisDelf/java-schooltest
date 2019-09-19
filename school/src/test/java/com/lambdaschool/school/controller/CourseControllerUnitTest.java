@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // we have to make our own seeddata
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(value =CourseController.class , secure = false)  //we are turning off user authen
+@WebMvcTest(value = CourseController.class, secure = false)  //we are turning off user authen
 public class CourseControllerUnitTest {
     @Autowired
     private MockMvc mockMvc;
@@ -50,7 +50,7 @@ public class CourseControllerUnitTest {
     @Before // before we do anything we need to intialize
     public void setup() throws Exception
     {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(new CourseControllerUnitTest()).build();
+//        this.mockMvc = MockMvcBuilders.standaloneSetup(new CourseControllerUnitTest()).build();
 
         instructorList = new ArrayList<>();
         courseList = new ArrayList<>();
@@ -87,13 +87,13 @@ public class CourseControllerUnitTest {
         RequestBuilder rb = MockMvcRequestBuilders.get(apiUrl).accept(MediaType.APPLICATION_JSON);
 
         // the following actually performs a real controller call
-        MvcResult r = mockMvc.perform(rb).andExpect(status().is2xxSuccessful()).andReturn(); // this could throw an exception
+        MvcResult r = mockMvc.perform(rb).andReturn(); // this could throw an exception
         String tr = r.getResponse().getContentAsString();
 
         ObjectMapper mapper = new ObjectMapper();
         String er = mapper.writeValueAsString(courseList);
 
-
+        assertEquals("Rest API Returns List", er, tr);
     }
 
     @Test
@@ -116,29 +116,9 @@ public class CourseControllerUnitTest {
         RequestBuilder rb = MockMvcRequestBuilders.post(apiUrl)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .content(courseString)
-                .characterEncoding("utf-8");
-        mockMvc.perform(rb).andExpect(status().isCreated()).andDo(print());
-    }
-    @Test
-    public void createEmployeeAPI() throws Exception
-    {
-        String course3Name = "Basket Weaving";
-        Instructor instType3 = new Instructor("Charlie");
-        instType3.setInstructid(3);
-        Course c3 = new Course(course3Name,instType3);
-        c3.setCourseid(100);
-        ObjectMapper mapper = new ObjectMapper();
-        String courseString = mapper.writeValueAsString(c3);
-
-        mockMvc.perform( MockMvcRequestBuilders
-                .post("/courses/course/add")
-                .content(courseString)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.courseid").exists());
+                .content(courseString);
+        mockMvc.perform(rb).andExpect(status().isCreated()).andDo(MockMvcResultHandlers.print());
     }
 
 
-}
+    }
